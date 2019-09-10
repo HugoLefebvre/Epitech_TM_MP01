@@ -6,7 +6,7 @@ defmodule Api.Auth.WorkingTime do
   schema "workingtimes" do
     field :end, :naive_datetime
     field :start, :naive_datetime
-    field :user, :id
+    belongs_to :user, Api.Auth.User
 
     timestamps()
   end

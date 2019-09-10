@@ -6,7 +6,7 @@ defmodule Api.Auth.Clocking do
   schema "clocks" do
     field :status, :boolean, default: false
     field :time, :naive_datetime
-    field :user, :id
+    belongs_to :user, Api.Auth.User
 
     timestamps()
   end

@@ -23,9 +23,11 @@ defmodule ApiWeb.Router do
     pipe_through :api # Use the default browser stack
 
     get "/", PageController, :index
-	resources "/users", UserController, except: [:new, :edit]
-	resources "/workingtimes", WorkingTimeController, except: [:new, :edit]
-	resources "/clocking", ClockingController, except: [:new, :edit, :index, :update, :delete]
+		resources "/users", UserController, except: [:new, :edit]
+		resources "/workingtimes", WorkingTimeController do
+			get "/users", UserController, except: [:new, :edit] 
+		end
+		resources "/clocking", ClockingController, except: [:new, :edit, :index, :update, :delete]
   end
 
   # Other scopes may use custom stacks.
