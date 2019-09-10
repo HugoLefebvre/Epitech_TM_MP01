@@ -20,9 +20,12 @@ defmodule ApiWeb.UserController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    user = Auth.get_user!(id)
-    render(conn, "show.json", user: user)
+  def show(conn, %{"email" => email, "username" => username}) do	
+    case Api.Repo.get_by(User, [email: email, username: email]) do
+			nil -> {:error, :not_found}
+			user -> {:ok, user}
+			render(conn, "user.json", user: user)
+		end
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do

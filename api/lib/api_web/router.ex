@@ -19,23 +19,23 @@ defmodule ApiWeb.Router do
 #    get "/", PageController, :index
 #  end
 
-  scope "/api", MainWeb do
-    pipe_through :api # Use the default browser stack
+#  scope "/api", ApiWeb do
+#    pipe_through :api # Use the default browser stack
 
 #    get "/", PageController, :index
-  end
+#  end
 
-	scope "/api/users" do
+	scope "/api/users", ApiWeb do
 		pipe_through :api
 	
 		get("/", UserController, :show)
-		get "/:userID", UserController, :show
+		get "/:userID", UserController, :index
 		post "/", UserController, :create
 		put "/:userID", UserController, :update
 		delete "/:userID", UserController, :delete
 	end
 
-	scope "/api/workingtimes" do
+	scope "/api/workingtimes", ApiWeb do
 		pipe_through :api
 
 		get("/:userID", WorkingTimeController, :index)
@@ -45,7 +45,7 @@ defmodule ApiWeb.Router do
 		delete "/:id", WorkingTimeController, :delete
 	end
 
-	scope "/api/clocks" do
+	scope "/api/clocks", ApiWeb do
 		pipe_through :api
 	
 		get "/:userID", ClockingController, :show
