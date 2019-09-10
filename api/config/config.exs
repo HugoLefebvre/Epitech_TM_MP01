@@ -12,8 +12,8 @@ config :api,
 # Configures the endpoint
 config :api, ApiWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "UG8XP1NFXOsAiG0Q8KqmnXb1JW/012I1pB8mTQXpfF5ShOjpTcMllSQkKX13eq/G",
-  render_errors: [view: ApiWeb.ErrorView, accepts: ~w(json)],
+  secret_key_base: "+Dpoqjf76g8rU+bH8TOcJKhiblm5gqSrBomviUcTGl/ZHypaRq1rbyKhGrSKfpX1",
+  render_errors: [view: ApiWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Api.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
