@@ -48,8 +48,7 @@ defmodule ApiWeb.Router do
 	scope "/api/clocks", ApiWeb do
 		pipe_through :api
 
-		get "/:userID", ClockingController, :show
-		post "/:userID", ClockingController, :create
+    resources "/:userID", ClockingController, only: [:index, :show, :create]
 	end
 
   # Other scopes may use custom stacks.

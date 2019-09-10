@@ -20,9 +20,26 @@ defmodule ApiWeb.ClockingController do
     end
   end
 
+  def createUserClock(conn, %{"userID" => userID, "clocking" => clocking_params}) do 
+    with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(clocking_params) do
+      conn
+      |> put_status(:created)
+      |> put_resp_header("location", clocking_path(conn, :show, clocking))
+      |> render("show.json", clocking: clocking)
+    end
+  end
+
   def show(conn, %{"id" => id}) do
     clocking = Auth.get_clocking!(id)
     render(conn, "show.json", clocking: clocking)
+  end
+
+  def showUserClock(conn, %{"userID" => userID}) do 
+    case Api.Repo.get_by(Clocking, [user: userID]) do
+    	nil -> {:error, :not_found} # Null : not found 
+			clock -> {:ok, clock} # Found : give the clock 
+			render(conn, "clock.json", clock: clock) # Show in json, the clock
+		end
   end
 
   def update(conn, %{"id" => id, "clocking" => clocking_params}) do
