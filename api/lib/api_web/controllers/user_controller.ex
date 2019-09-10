@@ -20,11 +20,19 @@ defmodule ApiWeb.UserController do
     end
   end
 
-  def show(conn, %{"email" => email, "username" => username}) do	
-    case Api.Repo.get_by(User, [email: email, username: email]) do
-			nil -> {:error, :not_found}
-			user -> {:ok, user}
-			render(conn, "user.json", user: user)
+  def show(conn, %{"id" => id}) do
+    user = Auth.get_user!(id)
+    render(conn, "show.json", user: user)
+  end
+
+  def showUser(conn, %{"email" => email, "username" => username}) do	
+    # Find in the database :
+    # parameter 1 : name schema
+    # paramater 2 : parameters (attributes)
+    case Api.Repo.get_by(User, [email: email, username: username]) do
+			nil -> {:error, :not_found} # Null : not found 
+			user -> {:ok, user} # Found : give the user 
+			render(conn, "user.json", user: user) # Show in json, the user
 		end
   end
 

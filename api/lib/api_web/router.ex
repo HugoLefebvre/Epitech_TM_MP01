@@ -13,26 +13,26 @@ defmodule ApiWeb.Router do
     plug :accepts, ["json"]
   end
 
-#  scope "/", ApiWeb do
-#    pipe_through :browser # Use the default browser stack
+  scope "/", ApiWeb do
+    pipe_through :browser # Use the default browser stack
 
-#    get "/", PageController, :index
-#  end
+    get "/", PageController, :index
+  end
 
-#  scope "/api", ApiWeb do
-#    pipe_through :api # Use the default browser stack
+  scope "/api", ApiWeb do
+    pipe_through :api # Use the default browser stack
 
-#    get "/", PageController, :index
-#  end
+    get "/", PageController, :index
+  end
 
 	scope "/api/users", ApiWeb do
 		pipe_through :api
-	
-		get("/", UserController, :show)
-		get "/:userID", UserController, :index
-		post "/", UserController, :create
-		put "/:userID", UserController, :update
-		delete "/:userID", UserController, :delete
+
+    # Endpoint : http://localhost:4000/api/users?email=XXX&username=YYY
+    # See showUser in user_controller
+		get("/", UserController, :showUser)
+		get "/:userID", UserController, :show
+		resources "/", UserController, except: [:new, :edit]
 	end
 
 	scope "/api/workingtimes", ApiWeb do
@@ -47,7 +47,7 @@ defmodule ApiWeb.Router do
 
 	scope "/api/clocks", ApiWeb do
 		pipe_through :api
-	
+
 		get "/:userID", ClockingController, :show
 		post "/:userID", ClockingController, :create
 	end
