@@ -10,6 +10,7 @@ defmodule ApiWeb.Router do
   end
 
   pipeline :api do
+    plug CORSPlug, origin: "http://localhost:8080"
     plug :accepts, ["json"]
   end
 
