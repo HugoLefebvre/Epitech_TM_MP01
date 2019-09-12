@@ -27,13 +27,18 @@ defmodule ApiWeb.WorkingTimeController do
 
   # GET : /workingtimes/userID?start=...?end=....
   def indexWorkingTime(conn, %{"userID" => userID, "start" => start, "end" => endInput}) do    
+    
+    Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID])
+      |> inspect()
+      |> Logger.info() 
+
     # Find in the database :
     # parameter 1 : name schema
     # parameter 2 : parameters (attributes)
-    case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do 
+    case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do
       nil -> {:error, :not_found}
       workingtimes -> {:ok, workingtimes}
-      render(conn, "index.json", workingtimes: workingtimes)
+      render(conn, "show.json", working_time: workingtimes)
     end
   end
 
@@ -69,7 +74,7 @@ defmodule ApiWeb.WorkingTimeController do
     case Api.Repo.get_by(WorkingTime, [id: workingtimeID, user_a: userID]) do 
       nil -> {:error, :not_found}
       workingtimes -> {:ok, workingtimes}
-      render(conn, "index.json", workingtimes: workingtimes)
+      render(conn, "show.json", working_time: workingtimes)
     end
   end
 

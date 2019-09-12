@@ -4,8 +4,8 @@ defmodule Api.Auth.WorkingTime do
 
 
   schema "workingtimes" do
-    field :end, :naive_datetime
-    field :start, :naive_datetime
+    field :end, :utc_datetime
+    field :start, :utc_datetime
     belongs_to :user, Api.Auth.User, foreign_key: :user_a
 
     timestamps()

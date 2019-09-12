@@ -44,7 +44,7 @@ defmodule ApiWeb.Router do
 		post "/:userID", WorkingTimeController, :createWorkingTimeUser
 		put "/:id", WorkingTimeController, :update
     delete "/:id", WorkingTimeController, :delete
-    resources "/", WorkingTimeController, only: [:show]
+    resources "/", WorkingTimeController, only: [:index, :show]
 	end
 
 	scope "/api/clocks", ApiWeb do

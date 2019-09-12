@@ -1,5 +1,7 @@
 defmodule ApiWeb.UserController do
   use ApiWeb, :controller
+  
+  require Logger
 
   alias Api.Auth
   alias Api.Auth.User
@@ -26,6 +28,11 @@ defmodule ApiWeb.UserController do
   end
 
   def showUser(conn, %{"email" => email, "username" => username}) do	
+
+    Api.Repo.get_by(User, [email: email, username: username])
+      |> inspect()
+      |> Logger.info()
+
     # Find in the database :
     # parameter 1 : name schema
     # paramater 2 : parameters (attributes)
