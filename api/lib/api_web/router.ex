@@ -38,11 +38,13 @@ defmodule ApiWeb.Router do
 	scope "/api/workingtimes", ApiWeb do
 		pipe_through :api
 
-		get("/:userID", WorkingTimeController, :userWorkingTime)
-		get "/:userID/:workingtimeID", WorkingTimeController, :show
-		post "/:userID", WorkingTimeController, :create
+	#	get "/:userID", WorkingTimeController, :userWorkingTime
+		get "/:userID", WorkingTimeController, :indexWorkingTime
+		get "/:userID/:workingtimeID", WorkingTimeController, :showWorkingTimeUser
+		post "/:userID", WorkingTimeController, :createWorkingTimeUser
 		put "/:id", WorkingTimeController, :update
-		delete "/:id", WorkingTimeController, :delete
+    delete "/:id", WorkingTimeController, :delete
+    resources "/", WorkingTimeController, only: [:show]
 	end
 
 	scope "/api/clocks", ApiWeb do

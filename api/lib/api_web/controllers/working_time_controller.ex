@@ -1,7 +1,6 @@
 defmodule ApiWeb.WorkingTimeController do
   use ApiWeb, :controller
 
-  import Ecto.Query, only: [from: 2]
   require Logger
 
   alias Api.Auth
@@ -26,10 +25,16 @@ defmodule ApiWeb.WorkingTimeController do
     render(conn, "index.json", workingtimes: workingtimes)
   end
 
-  def indexWorkingTime(conn, %{"userID" => user, "start" => start, "end" => endInput}) do
-    query = from workingTime in WorkingTime, where: workingTime.start == ^start and workingTime.end == ^endInput and workingTime.user_id == ^user
-    query
-      |> render(conn, "index.json", query: Repo.all())
+  # GET : /workingtimes/userID?start=...?end=....
+  def indexWorkingTime(conn, %{"userID" => userID, "start" => start, "end" => endInput}) do    
+    # Find in the database :
+    # parameter 1 : name schema
+    # parameter 2 : parameters (attributes)
+    case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do 
+      nil -> {:error, :not_found}
+      workingtimes -> {:ok, workingtimes}
+      render(conn, "index.json", workingtimes: workingtimes)
+    end
   end
 
   def create(conn, %{"working_time" => working_time_params}) do
@@ -41,10 +46,11 @@ defmodule ApiWeb.WorkingTimeController do
     end
   end
 
-  def createWorkingTimeUser(conn, %{"userID" => user, "start" => start, "end" => endInput}) do
-    with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time([user: user, start: start, end: endInput]) do
+  # POST : /workingtimes/:userID
+  def createWorkingTimeUser(conn, %{"userID" => userID, "working_time" => working_time_params}) do
+    with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(Map.merge(working_time_params, %{"user_a" => userID})) do
       conn
-       |> put_status(:created)
+      |> put_status(:created)
       |> put_resp_header("location", working_time_path(conn, :show, working_time))
       |> render("show.json", working_time: working_time)
     end
@@ -53,6 +59,18 @@ defmodule ApiWeb.WorkingTimeController do
   def show(conn, %{"id" => id}) do
     working_time = Auth.get_working_time!(id)
     render(conn, "show.json", working_time: working_time)
+  end
+
+  # GET : /workingtimes/:userID/:workingtimeID
+  def showWorkingTimeUser(conn, %{"userID" => userID, "workingtimeID" => workingtimeID}) do
+    # Find in the database :
+    # parameter 1 : name schema
+    # parameter 2 : parameters (attributes)
+    case Api.Repo.get_by(WorkingTime, [id: workingtimeID, user_a: userID]) do 
+      nil -> {:error, :not_found}
+      workingtimes -> {:ok, workingtimes}
+      render(conn, "index.json", workingtimes: workingtimes)
+    end
   end
 
   def update(conn, %{"id" => id, "working_time" => working_time_params}) do

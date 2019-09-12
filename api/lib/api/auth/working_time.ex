@@ -14,7 +14,7 @@ defmodule Api.Auth.WorkingTime do
   @doc false
   def changeset(working_time, attrs) do
     working_time
-    |> cast(attrs, [:start, :end])
+    |> cast(attrs, [:start, :end, :user_a])
     |> validate_required([:start, :end])
   end
 end
