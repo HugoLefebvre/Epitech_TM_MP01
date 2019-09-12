@@ -32,7 +32,7 @@ defmodule ApiWeb.Router do
     # Endpoint : http://localhost:4000/api/users?email=XXX&username=YYY
     # See showUser in user_controller
 		get("/", UserController, :showUser)
-		get "/:userID", UserController, :show
+		get "/:userID", UserController, :showUserById
 		resources "/", UserController, except: [:new, :edit]
 	end
 

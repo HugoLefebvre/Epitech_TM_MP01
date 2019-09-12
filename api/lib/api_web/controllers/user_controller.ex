@@ -27,12 +27,12 @@ defmodule ApiWeb.UserController do
     render(conn, "show.json", user: user)
   end
 
+  def showUserById(conn, %{"userID" => userID}) do
+    user = Auth.get_user!(userID)
+    render(conn, "show.json", user: user)
+  end
+
   def showUser(conn, %{"email" => email, "username" => username}) do	
-
-    Api.Repo.get_by(User, [email: email, username: username])
-      |> inspect()
-      |> Logger.info()
-
     # Find in the database :
     # parameter 1 : name schema
     # paramater 2 : parameters (attributes)
