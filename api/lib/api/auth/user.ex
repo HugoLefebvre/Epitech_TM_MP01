@@ -6,6 +6,8 @@ defmodule Api.Auth.User do
   schema "users" do
     field :email, :string
     field :username, :string
+    has_many :workingTime, Api.Auth.WorkingTime, foreign_key: :user_a
+    has_many :clock, Api.Auth.Clocking, foreign_key: :user_a
 
     timestamps()
   end

@@ -6,7 +6,7 @@ defmodule Api.Auth.Clocking do
   schema "clocks" do
     field :status, :boolean, default: false
     field :time, :naive_datetime
-    belongs_to :user, Api.Auth.User
+    belongs_to :user, Api.Auth.User, foreign_key: :user_a
 
     timestamps()
   end
@@ -14,7 +14,7 @@ defmodule Api.Auth.Clocking do
   @doc false
   def changeset(clocking, attrs) do
     clocking
-    |> cast(attrs, [:time, :status])
+    |> cast(attrs, [:time, :status, :user_a])
     |> validate_required([:time, :status])
   end
 end

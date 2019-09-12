@@ -38,7 +38,7 @@ defmodule ApiWeb.Router do
 	scope "/api/workingtimes", ApiWeb do
 		pipe_through :api
 
-		get("/:userID", WorkingTimeController, :index)
+		get("/:userID", WorkingTimeController, :userWorkingTime)
 		get "/:userID/:workingtimeID", WorkingTimeController, :show
 		post "/:userID", WorkingTimeController, :create
 		put "/:id", WorkingTimeController, :update
@@ -48,8 +48,10 @@ defmodule ApiWeb.Router do
 	scope "/api/clocks", ApiWeb do
 		pipe_through :api
 
-    resources "/:userID", ClockingController, only: [:index, :show, :create]
-	end
+    get "/:userID", ClockingController, :indexUserClock
+    post "/:userID", ClockingController, :createUserClock
+    resources "/", ClockingController, only: [:show]
+  end
 
   # Other scopes may use custom stacks.
   # scope "/api", ApiWeb do
