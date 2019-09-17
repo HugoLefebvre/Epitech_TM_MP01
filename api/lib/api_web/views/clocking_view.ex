@@ -13,6 +13,7 @@ defmodule ApiWeb.ClockingView do
   def render("clocking.json", %{clocking: clocking}) do
     %{id: clocking.id,
       time: clocking.time,
-      status: clocking.status}
+      status: clocking.status,
+      user: clocking.user_a}
   end
 end

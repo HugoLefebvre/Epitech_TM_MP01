@@ -31,6 +31,7 @@ defmodule ApiWeb.Router do
 
     # Endpoint : http://localhost:4000/api/users?email=XXX&username=YYY
     # See showUser in user_controller
+    get "/", UserController, :index
 		get("/", UserController, :showUser)
 		get "/:userID", UserController, :showUserById
 		resources "/", UserController, except: [:new, :edit]
@@ -53,7 +54,7 @@ defmodule ApiWeb.Router do
 
     get "/:userID", ClockingController, :indexUserClock
     post "/:userID", ClockingController, :createUserClock
-    resources "/", ClockingController, only: [:show]
+    resources "/", ClockingController, only: [:index, :show]
   end
 
   # Other scopes may use custom stacks.
