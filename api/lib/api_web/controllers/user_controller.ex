@@ -32,15 +32,20 @@ defmodule ApiWeb.UserController do
     render(conn, "show.json", user: user)
   end
 
-  def showUser(conn, %{"email" => email, "username" => username}) do	
-    # Find in the database :
-    # parameter 1 : name schema
-    # paramater 2 : parameters (attributes)
-    case Api.Repo.get_by(User, [email: email, username: username]) do
-			nil -> {:error, :not_found} # Null : not found 
-			user -> {:ok, user} # Found : give the user 
-			render(conn, "user.json", user: user) # Show in json, the user
-		end
+  def showUser(conn, params) do	
+    # If the params are empty, get the index
+    if Map.equal?(%{}, params) do 
+      index(conn, params)
+    else 
+      # Find in the database :
+      # parameter 1 : name schema
+      # paramater 2 : parameters (attributes)
+      case Api.Repo.get_by(User, [email: Map.get(params, "email"), username: Map.get(params, "username")]) do
+		  	nil -> {:error, :not_found} # Null : not found 
+		    user -> {:ok, user} # Found : give the user 
+		    render(conn, "user.json", user: user) # Show in json, the user
+		  end
+    end
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do
