@@ -12,7 +12,7 @@ defmodule Api.Auth.User do
     field :password_confirmation, :string, virtual: true
     has_many :workingTime, Api.Auth.WorkingTime, foreign_key: :user_a
     has_many :clock, Api.Auth.Clocking, foreign_key: :user_a
-    has_one :role, Api.Auth.Role
+    belongs_to :role, Api.Auth.Role
     many_to_many :teams, Api.Auth.Team, join_through: "teams_users"
 
     timestamps()
@@ -21,7 +21,7 @@ defmodule Api.Auth.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :email, :password, :password_confirmation])
+    |> cast(attrs, [:role_id, :username, :email, :password, :password_confirmation])
     |> validate_required([:username, :email, :password])
     |> validate_format(:email, ~r/@/)
     |> validate_confirmation(:password)

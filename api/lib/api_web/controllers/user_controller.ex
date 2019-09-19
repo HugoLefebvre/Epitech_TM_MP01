@@ -14,10 +14,15 @@ defmodule ApiWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with  {:ok, %User{} = user} <- Auth.create_user(user_params),
-          {:ok, token, _claims} <- Api.Token.generate_and_sign!(user_params) do
+    with  {:ok, %User{} = user} <- Auth.create_user(user_params) do
+      # Create a claims with the data from the back
+      claims = %{"id" => user.id, "role" => user.role_id}
+      # Encode and get the token 
+      # token shape : {:ok, token, claims}
+      # token is a tuple in Elixir
+      token = Api.Token.encode_and_sign(claims)
       conn
-      |> render("jwt.json", jwt: token)
+      |> render("jwt.json", jwt: elem(token, 1))
       #|> put_status(:created)
       #|> put_resp_header("location", user_path(conn, :show, user))
       #|> render("show.json", user: user)
@@ -62,6 +67,20 @@ defmodule ApiWeb.UserController do
     user = Auth.get_user!(id)
     with {:ok, %User{}} <- Auth.delete_user(user) do
       send_resp(conn, :no_content, "")
+    end
+  end
+
+  # When sign in
+  def sign_in(conn, %{"email" => email, "password" => password}) do
+    # Search in the database
+    case Auth.token_sign_in(email, password) do 
+      # Found something
+      {:ok, token, _claims} -> 
+        conn 
+        |> render("jwt.json", jwt: token)
+      # Not found
+      _ ->
+        {:error, :unauthorized}
     end
   end
 end

@@ -5,7 +5,7 @@ defmodule Api.Auth.Role do
 
   schema "roles" do
     field :name, :string
-    belongs_to :user, Auth.Api.User
+    has_many :user, Api.Auth.User
 
     timestamps()
   end
