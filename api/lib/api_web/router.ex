@@ -25,8 +25,6 @@ defmodule ApiWeb.Router do
     pipe_through :api # Use the default browser stack
 
     get "/", PageController, :index
-    post "/sign_up", UserController, :create
-    post "/sign_in", UserController, :sign_in
   end
 
 	scope "/api/users", ApiWeb do
@@ -36,6 +34,9 @@ defmodule ApiWeb.Router do
     # See showUser in user_controller
 		get("/", UserController, :showUser)
 		get "/:userID", UserController, :showUserById
+    post "/sign_up", UserController, :create
+    post "/sign_in", UserController, :sign_in
+    
 		resources "/", UserController, except: [:new, :edit]
 	end
 

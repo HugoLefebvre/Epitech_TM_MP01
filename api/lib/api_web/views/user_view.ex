@@ -10,6 +10,14 @@ defmodule ApiWeb.UserView do
     %{data: render_one(user, UserView, "user.json")}
   end
 
+  def render("showCurrentUser.json", %{user: user, currentUser: currentUser}) do 
+    %{
+        currentUserId: currentUser["id"],
+        currentUserRoleId: currentUser["role"],
+        data: render_one(user, UserView, "user.json")
+      }
+  end
+
   def render("user.json", %{user: user}) do
     %{id: user.id,
       username: user.username,

@@ -29,14 +29,37 @@ defmodule ApiWeb.UserController do
     end
   end
 
-  def show(conn, %{"id" => id}) do
-    user = Auth.get_user!(id)
-    render(conn, "show.json", user: user)
+#  def show(conn, %{"id" => id}) do
+#    user = Auth.get_user!(id)
+#    render(conn, "show.json", user: user)
+#  end
+
+  def show(conn, _params) do
+    conn
+    |> inspect()
+    |> Logger.info()
+
+    user = Api.Token.verify_and_validate(conn)
+    conn
+    |> render("show.json", user: user)
   end
 
   def showUserById(conn, %{"userID" => userID}) do
+
+    # Take the prefix from a string 
+    take_prefix = fn full, prefix ->
+      base = String.length(prefix)
+      String.slice(full, base, String.length(full) - base)
+    end
+
+    # Get the token from Bearer
+    token = take_prefix.(elem(elem(Enum.fetch(conn.req_headers,1),1),1),"Bearer ")
+
+    # Get the claims %{"id" => ..., "role" => ...}
+    {:ok, claims} = Api.Token.verify_and_validate(token)
+
     user = Auth.get_user!(userID)
-    render(conn, "show.json", user: user)
+    render(conn, "showCurrentUser.json", %{user: user, currentUser: claims})
   end
 
   def showUser(conn, params) do	
