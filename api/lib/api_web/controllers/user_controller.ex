@@ -29,19 +29,9 @@ defmodule ApiWeb.UserController do
     end
   end
 
-#  def show(conn, %{"id" => id}) do
-#    user = Auth.get_user!(id)
-#    render(conn, "show.json", user: user)
-#  end
-
-  def show(conn, _params) do
-    conn
-    |> inspect()
-    |> Logger.info()
-
-    user = Api.Token.verify_and_validate(conn)
-    conn
-    |> render("show.json", user: user)
+  def show(conn, %{"id" => id}) do
+    user = Auth.get_user!(id)
+    render(conn, "show.json", user: user)
   end
 
   def showUserById(conn, %{"userID" => userID}) do
@@ -54,12 +44,23 @@ defmodule ApiWeb.UserController do
 
     # Get the token from Bearer
     token = take_prefix.(elem(elem(Enum.fetch(conn.req_headers,1),1),1),"Bearer ")
-
-    # Get the claims %{"id" => ..., "role" => ...}
-    {:ok, claims} = Api.Token.verify_and_validate(token)
-
-    user = Auth.get_user!(userID)
-    render(conn, "showCurrentUser.json", %{user: user, currentUser: claims})
+    
+    # If token empty
+    if (elem(elem(Enum.fetch(conn.req_headers,1),1),0) != "authorization" or token == "" or token == nil) do 
+      {:error, :unauthorizedUser}
+    else 
+      # Get the claims %{"id" => ..., "role" => ...}
+      {code, claims} = Api.Token.verify_and_validate(token)
+      
+      # Code :ok : show the user 
+      # Other code : Error authorization
+      if code == :ok do
+        user = Auth.get_user!(userID)
+        render(conn, "showCurrentUser.json", %{user: user, currentUser: claims})
+      else      
+       {:error, :unauthorizedUser}
+      end
+    end
   end
 
   def showUser(conn, params) do	

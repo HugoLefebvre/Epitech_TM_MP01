@@ -23,4 +23,10 @@ defmodule ApiWeb.FallbackController do
     |> put_status(:unauthorized)
     |> json(%{error: "Login error"})
   end
+
+  def call(conn, {:error, :unauthorizedUser}) do 
+    conn 
+    |> put_status(:unauthorized)
+    |> json(%{error: "Unauthorized user !"})
+  end
 end
