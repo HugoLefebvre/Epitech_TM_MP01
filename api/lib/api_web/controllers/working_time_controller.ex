@@ -25,7 +25,7 @@ defmodule ApiWeb.WorkingTimeController do
     render(conn, "index.json", workingtimes: workingtimes)
   end
 
-  # GET : /workingtimes/userID?start=...?end=....
+  # GET : /workingtimes/userID?start=...&end=....
   def indexWorkingTime(conn, %{"userID" => userID, "start" => start, "end" => endInput}) do
 
     # If start and end is not set up, display all working for the user

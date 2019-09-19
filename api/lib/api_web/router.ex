@@ -24,6 +24,7 @@ defmodule ApiWeb.Router do
     pipe_through :api # Use the default browser stack
 
     get "/", PageController, :index
+    post "/sign_up", UserController, :create
   end
 
 	scope "/api/users", ApiWeb do
@@ -56,6 +57,18 @@ defmodule ApiWeb.Router do
     resources "/", ClockingController, only: [:index, :show]
   end
 
+  scope "/api/teams", ApiWeb do
+    pipe_through :api
+
+    resources "/", TeamController, except: [:new, :edit]
+  end
+
+  scope "/api/roles", ApiWeb do
+    pipe_through :api
+
+    resources "/", RoleController, only: [:index, :create]
+  end
+  
   # Other scopes may use custom stacks.
   # scope "/api", ApiWeb do
   #   pipe_through :api

@@ -56,3 +56,7 @@ config :api, Api.Repo,
   database: "api_dev",
   hostname: "localhost",
   pool_size: 10
+
+# Configure Joken 
+# Documentation : https://hexdocs.pm/joken/introduction.html
+config :joken, default_signer: "secret"

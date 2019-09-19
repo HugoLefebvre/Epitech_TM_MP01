@@ -33,7 +33,11 @@ defmodule Api.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:comeonin, "~> 4.0"},
+      {:bcrypt_elixir, "~> 1.0"},
       {:cors_plug, "~> 2.0"},
+      {:joken, "~> 2.0"},
+      {:jason, "~> 1.1"},
       {:phoenix, "~> 1.3.4"},
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},

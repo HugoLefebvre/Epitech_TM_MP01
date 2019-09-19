@@ -14,11 +14,13 @@ defmodule ApiWeb.UserController do
   end
 
   def create(conn, %{"user" => user_params}) do
-    with {:ok, %User{} = user} <- Auth.create_user(user_params) do
+    with  {:ok, %User{} = user} <- Auth.create_user(user_params),
+          {:ok, token, _claims} <- Api.Token.generate_and_sign!(user_params) do
       conn
-      |> put_status(:created)
-      |> put_resp_header("location", user_path(conn, :show, user))
-      |> render("show.json", user: user)
+      |> render("jwt.json", jwt: token)
+      #|> put_status(:created)
+      #|> put_resp_header("location", user_path(conn, :show, user))
+      #|> render("show.json", user: user)
     end
   end
 
