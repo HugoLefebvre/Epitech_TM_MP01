@@ -2,6 +2,8 @@ defmodule ApiWeb.ClockingController do
   use ApiWeb, :controller
   require Logger
 
+  import Ecto.Query
+
   alias Api.Auth
   alias Api.Auth.Clocking
 
@@ -14,14 +16,22 @@ defmodule ApiWeb.ClockingController do
 
   # GET : /clocks/:userID
   def indexUserClock(conn, %{"userID" => userID}) do 
-    # Get the user in the folder Api/Repo with the userID
-    user = Api.Repo.get(Api.Auth.User, userID)
-      # Get the clock value
-      |> Api.Repo.preload(:clock)
 
-    # Give the JSON. clocks is the name of the table in the migration
-    # Get the clock in the user
-    render(conn, "index.json", clocks: user.clock)
+    # Query : get the last inserted clock
+    query = from c in Clocking,
+            where: c.user_a == ^elem(Integer.parse(userID),0),
+            order_by: [desc: c.inserted_at],
+            limit: 1    
+    
+    # Get the result of the query
+    result = Api.Repo.one(query)
+
+    # If result is null, render [], else render a result
+    if (result == nil) do 
+      render(conn, "index.json", clocks: [])
+    else
+      render(conn, "index.json", clocks: [result])
+    end
   end
 
   def create(conn, %{"clocking" => clocking_params}) do
