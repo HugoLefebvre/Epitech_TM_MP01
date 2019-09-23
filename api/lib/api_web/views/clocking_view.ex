@@ -2,13 +2,7 @@ defmodule ApiWeb.ClockingView do
   use ApiWeb, :view
   alias ApiWeb.ClockingView
 
-  require Logger
   def render("index.json", %{clocks: clocks}) do
-
-    clocks
-      |> inspect()
-      |> Logger.info()
-      
     %{data: render_many(clocks, ClockingView, "clocking.json")}
   end
 
