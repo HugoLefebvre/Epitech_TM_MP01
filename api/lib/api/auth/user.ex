@@ -8,6 +8,8 @@ defmodule Api.Auth.User do
     field :email, :string
     field :username, :string
     field :password_hash, :string
+    field :c_xsrf_token, :string
+    field :expire_time, :integer
     field :password, :string, virtual: true
     field :password_confirmation, :string, virtual: true
     has_many :workingTime, Api.Auth.WorkingTime, foreign_key: :user_a
@@ -21,8 +23,8 @@ defmodule Api.Auth.User do
   @doc false
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:role_id, :username, :email, :password, :password_confirmation])
-    |> validate_required([:username, :email, :password])
+    |> cast(attrs, [:role_id, :username, :email, :password, :password_confirmation, :c_xsrf_token, :expire_time])
+    |> validate_required([:username, :email, :password, :role_id])
     |> validate_format(:email, ~r/@/)
     |> validate_confirmation(:password)
     |> unique_constraint(:email)
@@ -38,4 +40,11 @@ defmodule Api.Auth.User do
           changeset
     end
   end
+
+  @doc false
+  def changeToken(user, attrs) do 
+    user 
+    |> cast(attrs, [:c_xsrf_token, :expire_time])
+  end
+
 end

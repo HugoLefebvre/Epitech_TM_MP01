@@ -36,6 +36,7 @@ defmodule ApiWeb.Router do
 		get "/:userID", UserController, :showUserById
     post "/sign_up", UserController, :create
     post "/sign_in", UserController, :sign_in
+    patch "/logout", UserController, :logout
     
 		resources "/", UserController, except: [:new, :edit]
 	end

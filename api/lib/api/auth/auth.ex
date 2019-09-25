@@ -37,13 +37,12 @@ defmodule Api.Auth do
   end
 
   # Create a token when sign in
-  def token_sign_in(email, password) do
+  def sign_in(email, password) do
     case email_password_auth(email, password) do 
       {:ok, user} -> 
-        claims = %{"id" => user.id, "role" => user.role_id}
-        Token.encode_and_sign(claims)
+        %{"id" => user.id, "role" => user.role_id}
       _ ->
-        {:error, :unauthorized}
+        nil
     end
   end
 
@@ -109,6 +108,15 @@ defmodule Api.Auth do
   def update_user(%User{} = user, attrs) do
     user
     |> User.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Update a token in user
+  """
+  def update_token(%User{} = user, attrs) do
+    user
+    |> User.changeToken(attrs)
     |> Repo.update()
   end
 

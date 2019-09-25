@@ -12,9 +12,8 @@ defmodule ApiWeb.UserView do
 
   def render("showCurrentUser.json", %{user: user, currentUser: currentUser}) do 
     %{
-        currentUserId: currentUser["id"],
-        currentUserRoleId: currentUser["role"],
-        data: render_one(user, UserView, "user.json")
+        data: render_one(user, UserView, "user.json"),
+        currentUser: render_one(currentUser, UserView, "minimalUser.json")
       }
   end
 
@@ -22,6 +21,11 @@ defmodule ApiWeb.UserView do
     %{id: user.id,
       username: user.username,
       email: user.email}
+  end
+
+  def render("minimalUser.json", %{user: user}) do 
+    %{id: user.id,
+      role: user.role_id}
   end
 
   def render("jwt.json", %{jwt: jwt}) do
