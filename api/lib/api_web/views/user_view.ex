@@ -6,6 +6,13 @@ defmodule ApiWeb.UserView do
     %{data: render_many(users, UserView, "user.json")}
   end
 
+  def render("indexCurrentUser.json",  %{users: users, currentUser: currentUser}) do
+    %{
+        data: render_many(users, UserView, "user.json"),
+        currentUser: render_one(currentUser, UserView, "minimalUser.json")
+      }
+  end
+
   def render("show.json", %{user: user}) do
     %{data: render_one(user, UserView, "user.json")}
   end
