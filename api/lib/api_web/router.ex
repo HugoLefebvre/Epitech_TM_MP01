@@ -45,7 +45,7 @@ defmodule ApiWeb.Router do
 		pipe_through :api
 
 	#	get "/:userID", WorkingTimeController, :userWorkingTime
-		get "/:userID", WorkingTimeController, :k
+		get "/:userID", WorkingTimeController, :indexWorkingTime
 		get "/:userID/:workingtimeID", WorkingTimeController, :showWorkingTimeUser
 		post "/:userID", WorkingTimeController, :createWorkingTimeUser
 		put "/:id", WorkingTimeController, :update

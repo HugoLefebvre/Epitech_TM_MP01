@@ -11,21 +11,29 @@ defmodule ApiWeb.UserController do
   def index(conn, _params) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
-      currentUser -> # Otherwise :        
-        users = Auth.list_users()
-        render(conn, "indexCurrentUser.json", %{users: users, currentUser: currentUser})
+      currentUser -> # Otherwise :  
+        case String.equivalent?(currentUser.role.name, "admin") do 
+          false -> {:error, :unauthorized}
+          true ->       
+            users = Auth.list_users()
+            render(conn, "indexCurrentUser.json", %{users: users, currentUser: currentUser})
+        end
     end
   end
 
   def create(conn, %{"user" => user_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
-      currentUser -> # Otherwise :        
-        with  {:ok, %User{} = user} <- Auth.create_user(user_params) do
-          # Create a claims with the data from the back
-          claims = %{"id" => user.id, "role" => user.role_id}      
-          {code, token, claims} = encode({}, claims) # Create a token for the user
-          render(conn, "jwt.json", jwt: token)
+      currentUser -> # Otherwise :    
+        case (String.equivalent?(currentUser.role.name, "admin") || String.equivalent?(currentUser.role.name, "manager")) do   
+          false -> {:error, :unauthorized}
+          true -> 
+            with  {:ok, %User{} = user} <- Auth.create_user(user_params) do
+              # Create a claims with the data from the back
+              claims = %{"id" => user.id, "role" => user.role_id}      
+              {code, token, claims} = encode({}, claims) # Create a token for the user
+              render(conn, "jwt.json", jwt: token)
+            end
         end
     end
   end
@@ -33,21 +41,34 @@ defmodule ApiWeb.UserController do
   def show(conn, %{"id" => id}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
-      currentUser -> # Otherwise :        
-        user = Auth.get_user!(id)
-        render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+      currentUser -> # Otherwise :
+        case (String.equivalent?(currentUser.role.name, "admin") || 
+              String.equivalent?(currentUser.role.name, "manager") || 
+              currentUser.id == id) do
+          false -> {:error, :unauthorized}
+          true ->
+            user = Auth.get_user!(id)
+            render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+        end
     end
   end
 
   def showUserById(conn, %{"userID" => userID}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
-      currentUser -> # Otherwise :        
-        user = Auth.get_user!(userID) # Get the user in the database
-        render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+      currentUser -> # Otherwise :    
+        case (String.equivalent?(currentUser.role.name, "admin") || 
+              String.equivalent?(currentUser.role.name, "manager") || 
+              currentUser.id == userID) do
+          false -> {:error, :unauthorized}
+          true -> 
+            user = Auth.get_user!(userID) # Get the user in the database
+            render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+        end
     end
   end
 
+  # GET user by his email and username
   def showUser(conn, params) do
     case Map.equal?(%{}, params) do # If the params are empty, get the index
       true -> index(conn, params)
@@ -55,10 +76,15 @@ defmodule ApiWeb.UserController do
         case decode(conn) do # Get the user connect with the token 
           nil -> {:error, :unauthorized}
           currentUser -> # Otherwise :
-            case Api.Repo.get_by(User, [email: Map.get(params, "email"), username: Map.get(params, "username")]) do
-              nil -> {:error, :not_found} # Null : not found 
-              user -> {:ok, user} # Found : give the user 
-              render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser}) # Show in json, the user
+            case (String.equivalent?(currentUser.role.name, "admin") || 
+                  String.equivalent?(currentUser.role.name, "manager")) do
+              false -> {:error, :unauthorized}
+              true -> 
+                case Api.Repo.get_by(User, [email: Map.get(params, "email"), username: Map.get(params, "username")]) do
+                  nil -> {:error, :not_found} # Null : not found 
+                  user -> {:ok, user} # Found : give the user 
+                  render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser}) # Show in json, the user
+                end
             end
         end
     end
@@ -68,9 +94,15 @@ defmodule ApiWeb.UserController do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
       currentUser -> # Otherwise :
-        user = Auth.get_user!(id)
-        with {:ok, %User{} = user} <- Auth.update_user(user, user_params) do
-          render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+        case (String.equivalent?(currentUser.role.name, "admin") || 
+              String.equivalent?(currentUser.role.name, "manager") || 
+              currentUser.id == id) do
+          false -> {:error, :unauthorized}
+          true -> 
+            user = Auth.get_user!(id)
+            with {:ok, %User{} = user} <- Auth.update_user(user, user_params) do
+              render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+            end
         end
     end
   end
@@ -79,9 +111,15 @@ defmodule ApiWeb.UserController do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorized}
       currentUser -> # Otherwise :
-        user = Auth.get_user!(id)
-        with {:ok, %User{}} <- Auth.delete_user(user) do
-          render(conn, "show.json", user: currentUser)
+        case (String.equivalent?(currentUser.role.name, "admin") || 
+              String.equivalent?(currentUser.role.name, "manager") || 
+              currentUser.id == id) do
+          false -> {:error, :unauthorized}
+          true -> 
+            user = Auth.get_user!(id)
+            with {:ok, %User{}} <- Auth.delete_user(user) do
+              render(conn, "show.json", user: currentUser)
+            end
         end
     end
   end
@@ -134,16 +172,14 @@ defmodule ApiWeb.UserController do
       String.slice(full, base, String.length(full) - base)
     end
 
-    # Get the token in the header
-    bearer = List.first(get_req_header(conn, "authorization"))
-
-    case bearer do 
+    case List.first(get_req_header(conn, "authorization")) do # Get the token in the header
       nil -> nil # Return null if there is no authorization
-      _ -> 
+      bearer -> 
         token = take_prefix.(bearer,"Bearer ") # Get the token
         {code, claims} = Api.Token.verify_and_validate(token) # Get the claims
         if code == :ok do # If there is no problem
           user = Auth.get_user!(Map.get(claims, "id")) # Get the user
+          |> Api.Repo.preload(:role)
           # If there is a token and is match with the user
           if (user.c_xsrf_token != nil && String.equivalent?(Map.get(claims, "c-xsrf-token"), user.c_xsrf_token)) do
             user # Return the user
