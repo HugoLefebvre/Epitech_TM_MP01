@@ -27,7 +27,8 @@ defmodule ApiWeb.UserView do
   def render("user.json", %{user: user}) do
     %{id: user.id,
       username: user.username,
-      email: user.email}
+      email: user.email,
+      password: user.password_hash}
   end
 
   def render("minimalUser.json", %{user: user}) do 

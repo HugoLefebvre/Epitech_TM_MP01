@@ -121,6 +121,15 @@ defmodule Api.Auth do
   end
 
   @doc """
+  Update a user without his password
+  """
+  def update_user_without_password(%User{} = user, attrs) do
+    user
+    |> User.changesetWithoutPassword(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a User.
 
   ## Examples

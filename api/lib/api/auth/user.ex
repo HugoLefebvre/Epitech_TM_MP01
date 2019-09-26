@@ -47,4 +47,13 @@ defmodule Api.Auth.User do
     |> cast(attrs, [:c_xsrf_token, :expire_time])
   end
 
+  @doc false
+  def changesetWithoutPassword(user, attrs) do
+    user
+    |> cast(attrs, [:role_id, :username, :email, :c_xsrf_token, :expire_time])
+    |> validate_required([:username, :email, :role_id])
+    |> validate_format(:email, ~r/@/)
+    |> unique_constraint(:email)
+  end
+
 end
