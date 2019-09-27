@@ -7,8 +7,16 @@ defmodule ApiWeb.RoleController do
   action_fallback ApiWeb.FallbackController
 
   def index(conn, _params) do
-    roles = Auth.list_roles()
-    render(conn, "index.json", roles: roles)
+    case decode(conn) do # Get the user connect with the token 
+      nil -> {:error, :unauthorizedUser}
+      currentUser ->
+        case (String.equivalent?(currentUser.role.name, "admin")) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            roles = Auth.list_roles()
+            render(conn, "index.json", roles: roles)
+        end
+    end
   end
 
   def create(conn, %{"role" => role_params}) do
@@ -29,8 +37,16 @@ defmodule ApiWeb.RoleController do
   end
 
   def show(conn, %{"id" => id}) do
-    role = Auth.get_role!(id)
-    render(conn, "show.json", role: role)
+    case decode(conn) do # Get the user connect with the token 
+      nil -> {:error, :unauthorizedUser}
+      currentUser ->
+        case (String.equivalent?(currentUser.role.name, "admin")) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            role = Auth.get_role!(id)
+            render(conn, "show.json", role: role)
+        end
+    end
   end
 
   def update(conn, %{"id" => id, "role" => role_params}) do
