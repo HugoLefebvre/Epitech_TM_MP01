@@ -2,6 +2,7 @@ defmodule ApiWeb.WorkingTimeController do
   use ApiWeb, :controller
 
   require Logger
+  import Ecto.Query
 
   alias Api.Auth
   alias Api.Auth.WorkingTime
@@ -65,11 +66,16 @@ defmodule ApiWeb.WorkingTimeController do
                 currentUser.id == userID) do 
             false -> {:error, :unauthorizedUser}
             true -> 
+              # Query : get the working time between two datetime for a user
+              query = from w in WorkingTime,
+                      where: w.user_a == ^elem(Integer.parse(userID),0) and
+                             w.start >= ^start and w.end <= ^endInput,
+                             order_by: w.start
               # Find in the database :
               # parameter 1 : name schema
               # parameter 2 : parameters (attributes)
-              case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do
-                nil -> {:error, :not_found}
+              case Api.Repo.all(query) do
+                [] -> {:error, :not_found}
                 workingtimes -> {:ok, workingtimes}
                 render(conn, "show.json", working_time: workingtimes)
               end
