@@ -9,31 +9,49 @@ defmodule ApiWeb.WorkingTimeController do
   action_fallback ApiWeb.FallbackController
 
   # GET : /workingtimes/:userID
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def userWorkingTime(conn, %{"userID" => userID}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        # Get the user in the folder Api/Repo with the userID
-        user = Api.Repo.get(Api.Auth.User, userID)
-          # Get the clock value
-          |> Api.Repo.preload(:workingTime)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == userID) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            # Get the user in the folder Api/Repo with the userID
+            user = Api.Repo.get(Api.Auth.User, userID)
+              # Get the clock value
+              |> Api.Repo.preload(:workingTime)
 
-        # Give the JSON. workingtimes is the name of the table in the migration
-        # Get the workingTime in the user
-        render(conn, "index.json", workingtimes: user.workingTime)
+            # Give the JSON. workingtimes is the name of the table in the migration
+            # Get the workingTime in the user
+            render(conn, "index.json", workingtimes: user.workingTime)
+        end
     end
   end
 
+  # GET : /workingtimes
+  # Authorization: Bearer token 
+  # Privileges: admin, manager
   def index(conn, _params) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        workingtimes = Auth.list_workingtimes()
-        render(conn, "index.json", workingtimes: workingtimes)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager")) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            workingtimes = Auth.list_workingtimes()
+            render(conn, "index.json", workingtimes: workingtimes)
+        end
     end
   end
 
   # GET : /workingtimes/userID?start=...&end=....
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def indexWorkingTime(conn, %{"userID" => userID, "start" => start, "end" => endInput}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
@@ -42,89 +60,159 @@ defmodule ApiWeb.WorkingTimeController do
         if (start == "" or endInput == "" or start == nil or endInput == nil) do
           userWorkingTime(conn, %{"userID" => userID})
         else 
-          # Find in the database :
-          # parameter 1 : name schema
-          # parameter 2 : parameters (attributes)
-          case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do
-            nil -> {:error, :not_found}
-            workingtimes -> {:ok, workingtimes}
-            render(conn, "show.json", working_time: workingtimes)
+          case (String.equivalent?(currentUser.role.name, "admin") ||
+                String.equivalent?(currentUser.role.name, "manager") ||
+                currentUser.id == userID) do 
+            false -> {:error, :unauthorizedUser}
+            true -> 
+              # Find in the database :
+              # parameter 1 : name schema
+              # parameter 2 : parameters (attributes)
+              case Api.Repo.get_by(WorkingTime, [start: start, end: endInput, user_a: userID]) do
+                nil -> {:error, :not_found}
+                workingtimes -> {:ok, workingtimes}
+                render(conn, "show.json", working_time: workingtimes)
+              end
           end
         end
     end
   end
 
+  # POST : /workingtimes
+  # @param start
+  # @param end 
+  # @param user_a Id of the user
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def create(conn, %{"working_time" => working_time_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(working_time_params) do
-          conn
-          |> put_status(:created)
-          |> put_resp_header("location", working_time_path(conn, :show, working_time))
-          |> render("show.json", working_time: working_time)
+        case (String.equivalent?(currentUser.role.name, "admin") || 
+              String.equivalent?(currentUser.role.name, "manager") ||
+              working_time_params["user_a"] == currentUser.id) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(working_time_params) do
+              conn
+              |> put_status(:created)
+              |> put_resp_header("location", working_time_path(conn, :show, working_time))
+              |> render("show.json", working_time: working_time)
+            end
         end
     end
   end
 
   # POST : /workingtimes/:userID
+  # @param start
+  # @param end
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def createWorkingTimeUser(conn, %{"userID" => userID, "working_time" => working_time_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(Map.merge(working_time_params, %{"user_a" => userID})) do
-          conn
-          |> put_status(:created)
-          |> put_resp_header("location", working_time_path(conn, :show, working_time))
-          |> render("show.json", working_time: working_time)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == userID) do
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(Map.merge(working_time_params, %{"user_a" => userID})) do
+              conn
+              |> put_status(:created)
+              |> put_resp_header("location", working_time_path(conn, :show, working_time))
+              |> render("show.json", working_time: working_time)
+            end
         end
     end
   end
 
+  # GET : /workingtimes/:id 
+  # Privileges: admin, manager, owner
   def show(conn, %{"id" => id}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        working_time = Auth.get_working_time!(id)
-        render(conn, "show.json", working_time: working_time)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            working_time = Auth.get_working_time!(id)
+            render(conn, "show.json", working_time: working_time)
+        end
     end
   end
 
   # GET : /workingtimes/:userID/:workingtimeID
+  # @param start
+  # @param end
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def showWorkingTimeUser(conn, %{"userID" => userID, "workingtimeID" => workingtimeID}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        # Find in the database :
-        # parameter 1 : name schema
-        # parameter 2 : parameters (attributes)
-        case Api.Repo.get_by(WorkingTime, [id: workingtimeID, user_a: userID]) do 
-          nil -> {:error, :not_found}
-          workingtimes -> {:ok, workingtimes}
-          render(conn, "show.json", working_time: workingtimes)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == userID) do
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            # Find in the database :
+            # parameter 1 : name schema
+            # parameter 2 : parameters (attributes)
+            case Api.Repo.get_by(WorkingTime, [id: workingtimeID, user_a: userID]) do 
+              nil -> {:error, :not_found}
+              workingtimes -> {:ok, workingtimes}
+              render(conn, "show.json", working_time: workingtimes)
+            end
         end
     end
   end
 
+  # PATCH or PUT : /workingtimes/:id
+  # @param start
+  # @param end
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def update(conn, %{"id" => id, "working_time" => working_time_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        working_time = Auth.get_working_time!(id)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            working_time = Auth.get_working_time!(id)
 
-        with {:ok, %WorkingTime{} = working_time} <- Auth.update_working_time(working_time, working_time_params) do
-          render(conn, "show.json", working_time: working_time)
+            with {:ok, %WorkingTime{} = working_time} <- Auth.update_working_time(working_time, working_time_params) do
+              render(conn, "show.json", working_time: working_time)
+            end
         end
     end
   end
 
+  # DELETE : /workingtimes/:id
+  # @param start
+  # @param end
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
   def delete(conn, %{"id" => id}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        working_time = Auth.get_working_time!(id)
-        with {:ok, %WorkingTime{}} <- Auth.delete_working_time(working_time) do
-          send_resp(conn, :no_content, "")
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            working_time = Auth.get_working_time!(id)
+            with {:ok, %WorkingTime{}} <- Auth.delete_working_time(working_time) do
+              send_resp(conn, :no_content, "")
+            end
         end
     end
   end

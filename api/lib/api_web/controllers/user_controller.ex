@@ -20,7 +20,7 @@ defmodule ApiWeb.UserController do
           false -> {:error, :unauthorizedUser}
           true ->       
             users = Auth.list_users() # Get the list of user in the database
-            render(conn, "indexCurrentUser.json", %{users: users, currentUser: currentUser})
+            render(conn, "index.json", %{users: users})
         end
     end
   end
@@ -70,7 +70,7 @@ defmodule ApiWeb.UserController do
           false -> {:error, :unauthorizedUser}
           true ->
             user = Auth.get_user!(id)
-            render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+            render(conn, "show.json", %{user: user})
         end
     end
   end
@@ -86,7 +86,7 @@ defmodule ApiWeb.UserController do
           false -> {:error, :unauthorizedUser}
           true -> 
             user = Auth.get_user!(userID) # Get the user in the database
-            render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+            render(conn, "show.json", %{user: user})
         end
     end
   end
@@ -110,7 +110,7 @@ defmodule ApiWeb.UserController do
                 case Api.Repo.get_by(User, [email: Map.get(params, "email"), username: Map.get(params, "username")]) do
                   nil -> {:error, :not_found} # Null : not found 
                   user -> {:ok, user} # Found : give the user 
-                  render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser}) # Show in json, the user
+                  render(conn, "show.json", %{user: user}) # Show in json, the user
                 end
             end
         end
@@ -144,11 +144,11 @@ defmodule ApiWeb.UserController do
                 case String.equivalent?(user.password_hash, user_params["password"]) do 
                   false -> # Change if the password is different
                     with {:ok, %User{} = user} <- Auth.update_user(user, user_params) do
-                      render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+                      render(conn, "show.json", %{user: user})
                     end
                   true -> # Do no change the password for the user
                     with {:ok, %User{} = user} <- Auth.update_user_without_password(user, user_params) do
-                      render(conn, "showCurrentUser.json", %{user: user, currentUser: currentUser})
+                      render(conn, "show.json", %{user: user})
                     end
                 end
             end
