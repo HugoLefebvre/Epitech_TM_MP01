@@ -192,7 +192,7 @@ defmodule ApiWeb.UserController do
       nil -> {:error, :unauthorized} # No user found
       claims -> # Otherwise :
         {code, token, claims} = encode({}, claims) # Create token for the user
-        render(conn, "jwt.json", jwt: token) # Return the token to the front
+        render(conn, "sign_in.json", %{jwt: token, claims: claims}) # Return the token to the front
     end 
   end
 
