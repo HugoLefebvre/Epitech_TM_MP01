@@ -55,5 +55,4 @@ defmodule Api.Auth.User do
     |> validate_format(:email, ~r/@/)
     |> unique_constraint(:email)
   end
-
 end

@@ -64,6 +64,8 @@ defmodule ApiWeb.Router do
   scope "/api/teams", ApiWeb do
     pipe_through :api
 
+    patch "/:id", TeamController, :updateMembers
+
     resources "/", TeamController, except: [:new, :edit]
   end
 

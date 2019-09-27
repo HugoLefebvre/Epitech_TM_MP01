@@ -3,6 +3,8 @@ defmodule Api.Auth do
   The Auth context.
   """
 
+  require Logger
+
   import Ecto.Query, warn: false
   import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
   alias Api.Token
@@ -444,6 +446,38 @@ defmodule Api.Auth do
   """
   def change_team(%Team{} = team) do
     Team.changeset(team, %{})
+  end
+
+  alias Api.Auth.TeamsUsers
+
+  @doc """ 
+  Delete/Update team members
+  TODO : must be refractor !
+  """
+  def update_team_members(%Team{} = team, user_ids) when is_list(user_ids) do 
+    # Get all the users existed in the database
+    users = User
+            |> where([user], user.id in ^user_ids)
+            |> Repo.all()
+            |> Repo.preload(:teams)
+
+    # Get all the teams users with a certain team id
+    teamsUsers = TeamsUsers
+                  |> where(team_id: ^team.id)
+                  |> Repo.all()
+
+    # For each team user, delete the association
+    Enum.each teamsUsers, fn teamUser -> 
+      Repo.delete(teamUser)
+    end
+
+    # For each user, add the association
+    Enum.each users, fn user ->
+      changeset = TeamsUsers.changeset(%TeamsUsers{}, %{team_id: team.id, user_id: user.id})
+      Repo.insert(changeset)
+    end
+    
+    {:ok, team} # Return the team
   end
 
   alias Api.Auth.Role
