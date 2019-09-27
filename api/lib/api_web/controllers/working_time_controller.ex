@@ -77,7 +77,7 @@ defmodule ApiWeb.WorkingTimeController do
               case Api.Repo.all(query) do
                 [] -> {:error, :not_found}
                 workingtimes -> {:ok, workingtimes}
-                render(conn, "show.json", working_time: workingtimes)
+                render(conn, "index.json", workingtimes: workingtimes)
               end
           end
         end
