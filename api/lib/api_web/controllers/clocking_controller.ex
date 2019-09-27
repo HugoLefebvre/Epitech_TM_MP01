@@ -9,94 +9,173 @@ defmodule ApiWeb.ClockingController do
 
   action_fallback ApiWeb.FallbackController
 
+  # GET : /clocks
+  # Authorization: Bearer Token
+  # Privileges: admin, manager
+  # Get all the clocks of the database
   def index(conn, _params) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        clocks = Auth.list_clocks()
-        render(conn, "index.json", clocks: clocks)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager")) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            clocks = Auth.list_clocks()
+            render(conn, "index.json", clocks: clocks)
+        end
     end
   end
 
   # GET : /clocks/:userID
+  # Authorization: Bearer Token
+  # Privileges: admin, manager, owner
+  # Get the last inserted clock of the user
   def indexUserClock(conn, %{"userID" => userID}) do 
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        # Query : get the last inserted clock
-        query = from c in Clocking,
-                where: c.user_a == ^elem(Integer.parse(userID),0),
-                order_by: [desc: c.inserted_at],
-                limit: 1    
-        
-        # Get the result of the query
-        result = Api.Repo.one(query)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == userID) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            # Query : get the last inserted clock
+            query = from c in Clocking,
+                    where: c.user_a == ^elem(Integer.parse(userID),0),
+                    order_by: [desc: c.inserted_at],
+                    limit: 1    
+            
+            # Get the result of the query
+            result = Api.Repo.one(query)
 
-        # If result is null, render [], else render a result
-        if (result == nil) do 
-          render(conn, "index.json", clocks: [])
-        else
-          render(conn, "index.json", clocks: [result])
+            # If result is null, render [], else render a result
+            if (result == nil) do 
+              render(conn, "index.json", clocks: [])
+            else
+              render(conn, "index.json", clocks: [result])
+            end
         end
     end
   end
 
+  # POST : /clocks
+  # @param time
+  # @param status
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
+  # Create a clock
   def create(conn, %{"clocking" => clocking_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(clocking_params) do
-          conn
-          |> put_status(:created)
-          |> put_resp_header("location", clocking_path(conn, :show, clocking))
-          |> render("show.json", clocking: clocking)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == clocking_params["user_a"]) do 
+          false -> {:error, :unauthorizedUser}
+          true ->
+            with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(clocking_params) do
+              conn
+              |> put_status(:created)
+              |> put_resp_header("location", clocking_path(conn, :show, clocking))
+              |> render("show.json", clocking: clocking)
+            end
         end
     end
   end
 
-  # POST : /clocks/userID
+  # POST : /clocks/:userID
+  # @param time
+  # @param status
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
+  # Create a clock for an user
   def createUserClock(conn, %{"userID" => userID, "clocking" => clocking_params}) do 
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        # Map merge : merge the clocking params and the userID
-        with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(Map.merge(clocking_params, %{"user_a" => userID})) do
-          conn
-          |> put_status(:created)
-          |> put_resp_header("location", clocking_path(conn, :show, clocking))
-          |> render("show.json", clocking: clocking)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == userID) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            # Map merge : merge the clocking params and the userID
+            with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(Map.merge(clocking_params, %{"user_a" => userID})) do
+              conn
+              |> put_status(:created)
+              |> put_resp_header("location", clocking_path(conn, :show, clocking))
+              |> render("show.json", clocking: clocking)
+            end
         end
     end
   end
 
+  # GET : /clocks/:id
+  # Authorization: Bearer token 
+  # Privileges: admin, manager, owner
+  # Get the clock for a user
   def show(conn, %{"id" => id}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        clocking = Auth.get_clocking!(id)
-        render(conn, "show.json", clocking: clocking)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do 
+          false -> {:error, :unauthorizedUser}
+          true ->
+            clocking = Auth.get_clocking!(id)
+            render(conn, "show.json", clocking: clocking)
+        end
     end
   end
   
+  # PUT or PATCH : /clocks/:id
+  # @param time
+  # @param status
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
+  # Update a clock
   def update(conn, %{"id" => id, "clocking" => clocking_params}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        clocking = Auth.get_clocking!(id)
-        
-        with {:ok, %Clocking{} = clocking} <- Auth.update_clocking(clocking, clocking_params) do
-          render(conn, "show.json", clocking: clocking)
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do 
+          false -> {:error, :unauthorizedUser}
+          true ->
+            clocking = Auth.get_clocking!(id)
+            
+            with {:ok, %Clocking{} = clocking} <- Auth.update_clocking(clocking, clocking_params) do
+              render(conn, "show.json", clocking: clocking)
+            end
         end
     end
   end
 
+  # DELETE : /clocks/:id
+  # @param time
+  # @param status
+  # @param user_a User id
+  # Authorization: Bearer token
+  # Privileges: admin, manager, owner
+  # Delete a clock
   def delete(conn, %{"id" => id}) do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
-        clocking = Auth.get_clocking!(id)
-        with {:ok, %Clocking{}} <- Auth.delete_clocking(clocking) do
-          send_resp(conn, :no_content, "")
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager") ||
+              currentUser.id == id) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            clocking = Auth.get_clocking!(id)
+            with {:ok, %Clocking{}} <- Auth.delete_clocking(clocking) do
+              send_resp(conn, :no_content, "")
+            end
         end
     end
   end
