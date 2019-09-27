@@ -64,6 +64,26 @@ defmodule ApiWeb.TeamController do
     end
   end
 
+  # GET : /teams/:id
+  # Authorization: Bearer token
+  # Privileges: admin, manager
+  # Get all informations from the team
+  def showTeam(conn, %{"id" => id}) do
+    case decode(conn) do # Get the user connect with the token 
+      nil -> {:error, :unauthorizedUser}
+      currentUser ->
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager")) do 
+          false -> {:error, :unauthorizedUser}
+          true -> 
+            team = Api.Repo.get(Api.Auth.Team, id)
+            |> Api.Repo.preload(:users)
+
+            render(conn, "showAll.json", team: team)
+        end
+    end
+  end
+
   # POST : /teams/:id
   # param name
   # Authorization: Bearer token
