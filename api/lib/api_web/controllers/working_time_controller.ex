@@ -21,14 +21,17 @@ defmodule ApiWeb.WorkingTimeController do
               currentUser.id == userID) do 
           false -> {:error, :unauthorizedUser}
           true -> 
-            # Get the user in the folder Api/Repo with the userID
-            user = Api.Repo.get(Api.Auth.User, userID)
-              # Get the clock value
-              |> Api.Repo.preload(:workingTime)
+            # Get all WorkingTime from an user order by end time
+            query = from w in WorkingTime,
+                    where: w.user_a == ^elem(Integer.parse(userID), 0),
+                    order_by: [desc: w.end],
+                    limit: 50
+
+            result = Api.Repo.all(query) # Get all the result of the query
 
             # Give the JSON. workingtimes is the name of the table in the migration
             # Get the workingTime in the user
-            render(conn, "index.json", workingtimes: user.workingTime)
+            render(conn, "index.json", workingtimes: result)
         end
     end
   end
@@ -44,7 +47,13 @@ defmodule ApiWeb.WorkingTimeController do
               String.equivalent?(currentUser.role.name, "manager")) do 
           false -> {:error, :unauthorizedUser}
           true -> 
-            workingtimes = Auth.list_workingtimes()
+            #workingtimes = Auth.list_workingtimes()
+            query = from w in WorkingTime,
+                    order_by: [desc: w.end],
+                    limit: 50
+
+            workingtimes = Api.Repo.all(query)
+            
             render(conn, "index.json", workingtimes: workingtimes)
         end
     end
@@ -70,7 +79,8 @@ defmodule ApiWeb.WorkingTimeController do
               query = from w in WorkingTime,
                       where: w.user_a == ^elem(Integer.parse(userID),0) and
                              w.start >= ^start and w.end <= ^endInput,
-                             order_by: w.start
+                             order_by: [desc: w.end],
+                             limit: 50
               # Find in the database :
               # parameter 1 : name schema
               # parameter 2 : parameters (attributes)
