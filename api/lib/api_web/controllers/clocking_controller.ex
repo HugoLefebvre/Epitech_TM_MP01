@@ -21,7 +21,11 @@ defmodule ApiWeb.ClockingController do
               String.equivalent?(currentUser.role.name, "manager")) do 
           false -> {:error, :unauthorizedUser}
           true -> 
-            clocks = Auth.list_clocks()
+            # Query : get all the clocks order by time desc
+            query = from c in Clocking,
+                    order_by: [desc: c.time],
+                    limit: 50
+            clocks = Api.Repo.all(query)
             render(conn, "index.json", clocks: clocks)
         end
     end
