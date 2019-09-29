@@ -41,7 +41,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              String.equivalent?(userID, Integer.to_string(currentUser.id)) do 
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             # Query : get the last inserted clock
@@ -76,7 +76,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              String.equivalent?(clocking_params["user_a"], Integer.to_string(currentUser.id)) do 
+              String.equivalent?(clocking_params["user_a"], Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true ->
             with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(clocking_params) do
