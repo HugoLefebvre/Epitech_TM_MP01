@@ -18,7 +18,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == userID) do 
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             # Get all WorkingTime from an user order by end time
@@ -72,7 +72,7 @@ defmodule ApiWeb.WorkingTimeController do
         else 
           case (String.equivalent?(currentUser.role.name, "admin") ||
                 String.equivalent?(currentUser.role.name, "manager") ||
-                currentUser.id == userID) do 
+                String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
             false -> {:error, :unauthorizedUser}
             true -> 
               # Query : get the working time between two datetime for a user
@@ -130,7 +130,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == userID) do
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             with {:ok, %WorkingTime{} = working_time} <- Auth.create_working_time(Map.merge(working_time_params, %{"user_a" => userID})) do
@@ -151,7 +151,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             working_time = Auth.get_working_time!(id)
@@ -171,7 +171,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == userID) do
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             # Find in the database :
@@ -198,7 +198,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             working_time = Auth.get_working_time!(id)
@@ -222,7 +222,7 @@ defmodule ApiWeb.WorkingTimeController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             working_time = Auth.get_working_time!(id)

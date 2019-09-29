@@ -41,7 +41,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == userID) do 
+              String.equivalent?(userID, Integer.to_string(currentUser.id)) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             # Query : get the last inserted clock
@@ -76,7 +76,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == clocking_params["user_a"]) do 
+              String.equivalent?(clocking_params["user_a"], Integer.to_string(currentUser.id)) do 
           false -> {:error, :unauthorizedUser}
           true ->
             with {:ok, %Clocking{} = clocking} <- Auth.create_clocking(clocking_params) do
@@ -100,9 +100,12 @@ defmodule ApiWeb.ClockingController do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser ->
+        currentUser.id
+        |> inspect()
+        |> Logger.info()
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == userID) do 
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             # Map merge : merge the clocking params and the userID
@@ -126,7 +129,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do 
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true ->
             clocking = Auth.get_clocking!(id)
@@ -148,7 +151,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do 
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true ->
             clocking = Auth.get_clocking!(id)
@@ -173,7 +176,7 @@ defmodule ApiWeb.ClockingController do
       currentUser ->
         case (String.equivalent?(currentUser.role.name, "admin") ||
               String.equivalent?(currentUser.role.name, "manager") ||
-              currentUser.id == id) do 
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             clocking = Auth.get_clocking!(id)

@@ -66,8 +66,8 @@ defmodule ApiWeb.UserController do
       nil -> {:error, :unauthorizedUser}
       currentUser -> # Otherwise :
         case (String.equivalent?(currentUser.role.name, "admin") || 
-              String.equivalent?(currentUser.role.name, "manager") || 
-              currentUser.id == id) do
+              String.equivalent?(currentUser.role.name, "manager") ||
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do
           false -> {:error, :unauthorizedUser}
           true ->
             user = Auth.get_user!(id)
@@ -83,7 +83,7 @@ defmodule ApiWeb.UserController do
       currentUser -> # Otherwise :    
         case (String.equivalent?(currentUser.role.name, "admin") || 
               String.equivalent?(currentUser.role.name, "manager") || 
-              currentUser.id == userID) do
+              String.equivalent?(userID, Integer.to_string(currentUser.id))) do 
           false -> {:error, :unauthorizedUser}
           true -> 
             user = Auth.get_user!(userID) # Get the user in the database
@@ -134,7 +134,7 @@ defmodule ApiWeb.UserController do
       currentUser -> # Otherwise :
         case (String.equivalent?(currentUser.role.name, "admin") || 
               String.equivalent?(currentUser.role.name, "manager") || 
-              currentUser.id == id) do
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do
           false -> {:error, :unauthorizedUser}
           true -> 
             user = Auth.get_user!(id) # Get the user who will be update
@@ -166,7 +166,7 @@ defmodule ApiWeb.UserController do
       currentUser -> # Otherwise :
         case (String.equivalent?(currentUser.role.name, "admin") || 
               String.equivalent?(currentUser.role.name, "manager") || 
-              currentUser.id == id) do
+              String.equivalent?(id, Integer.to_string(currentUser.id))) do
           false -> {:error, :unauthorizedUser}
           true -> 
             user = Auth.get_user!(id)
