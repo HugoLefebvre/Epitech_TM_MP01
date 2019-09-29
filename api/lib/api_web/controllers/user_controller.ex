@@ -16,7 +16,8 @@ defmodule ApiWeb.UserController do
     case decode(conn) do # Get the user connect with the token 
       nil -> {:error, :unauthorizedUser}
       currentUser -> # Otherwise :  
-        case String.equivalent?(currentUser.role.name, "admin") do 
+        case (String.equivalent?(currentUser.role.name, "admin") ||
+              String.equivalent?(currentUser.role.name, "manager")) do 
           false -> {:error, :unauthorizedUser}
           true ->       
             users = Auth.list_users() # Get the list of user in the database
